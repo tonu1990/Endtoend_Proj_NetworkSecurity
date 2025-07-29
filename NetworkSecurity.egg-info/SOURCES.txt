@@ -9,6 +9,7 @@ networksecurity/my_cloud/__init__.py
 networksecurity/my_components/ETL_push_data.py
 networksecurity/my_components/__init__.py
 networksecurity/my_components/data_ingestion.py
+networksecurity/my_components/data_transformation.py
 networksecurity/my_components/data_validation.py
 networksecurity/my_constants/__init__.py
 networksecurity/my_constants/training_pipeline/__init__.py
