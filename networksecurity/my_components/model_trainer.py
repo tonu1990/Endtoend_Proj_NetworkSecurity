@@ -26,10 +26,10 @@ from sklearn.ensemble import (
 import mlflow
 from urllib.parse import urlparse
 
- 
+import tempfile
 
-
-
+import dagshub
+dagshub.init(repo_owner='tonu1990', repo_name='Endtoend_Proj_NetworkSecurity', mlflow=True)
 
 class ModelTrainer:
     def __init__(self,model_trainer_config:ModelTrainerConfig,data_transformation_artifact:DataTransformationArtifact):
@@ -39,7 +39,8 @@ class ModelTrainer:
         except Exception as e:
             raise NetworkSecurityException(e,sys)
         
-    def track_mlflow(self, best_model, classification_metric):
+    def track_mlflow(self, best_model, classification_metric):     
+
         with mlflow.start_run():
              f1_score =classification_metric.f1_score
              precision_score =classification_metric.precision_score
@@ -49,7 +50,17 @@ class ModelTrainer:
              mlflow.log_metric("precision_score", precision_score)
              mlflow.log_metric("recall_score", recall_score)
 
-             mlflow.sklearn.log_model(best_model , "model")
+             try:
+                mlflow.sklearn.log_model(best_model , "model")
+                logging.info(f"Model saved successfully using mlflow.log_metric")
+             except Exception as e:
+                 logging.info(f"Model logging failed (likely due to DagsHub limitations): {e}")
+                 logging.info("Logging model as artifact instead...")
+
+             with tempfile.TemporaryDirectory() as tmp_dir:
+                model_path = os.path.join(tmp_dir, "model")
+                mlflow.sklearn.save_model(best_model, model_path)
+                mlflow.log_artifact(model_path)
 
 
     def train_model(self,X_train,y_train,x_test,y_test):
